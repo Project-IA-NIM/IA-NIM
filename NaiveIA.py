@@ -42,7 +42,7 @@ class NaiveIA:
     # CONSTRUCTOR
     # ---------------------------------------------------------------------------
 
-    def __init__(self, imported_json_brain: list = None, update_coef: float = 2) -> None:
+    def __init__(self, imported_json_brain: dict = None, update_coef: float = 2) -> None:
         if imported_json_brain is None:
             # initialize IA brain with default value
             self.__brain = self.__create_default_brain()
@@ -67,6 +67,7 @@ class NaiveIA:
     # ---------------------------------------------------------------------------
 
     def export_brain(self, export_file_path: str = None) -> None:
+        # default file path
         if export_file_path is None:
             export_file_path = os.path.join("output", "NaiveIA-Brain-Report.json")
 
@@ -78,6 +79,7 @@ class NaiveIA:
             win_rate = round(self.__nbWin / self.__nbGames, 2)
             lose_rate = round((self.__nbGames - self.__nbWin) / self.__nbGames, 2)
 
+        # export brain in json format in an output file
         export_brain = {
             "nb_games_played": self.__nbGames,
             "nb_games_won": self.__nbWin,
@@ -96,40 +98,43 @@ class NaiveIA:
 
     def play(self, nb_stick_remaining: int) -> int:
         random_play = None
-        
+
+        # choosing current play depending on play probabilities
         while(random_play is None):
             random_num = random.random()
 
             if (random_num < self.__brain[nb_stick_remaining - 1][0]):
                 random_play = 1
 
-            elif (random_num < self.__brain[nb_stick_remaining - 1][1]):
+            elif (random_num < self.__brain[nb_stick_remaining - 1][0] + self.__brain[nb_stick_remaining - 1][1]):
                 random_play = 2
 
-            elif (random_num < self.__brain[nb_stick_remaining - 1][2]):
+            elif (random_num < self.__brain[nb_stick_remaining - 1][0] + self.__brain[nb_stick_remaining - 1][1] + self.__brain[nb_stick_remaining - 1][2]):
                 random_play = 3
 
+        # add the current play in the list to update the probailities at the end of the game
         self.__currentPlay.append((nb_stick_remaining, random_play))
+
         return random_play
-    
+
     # ---------------------------------------------------------------------------
 
-    def updateStat(self, has_won: bool) -> None:
+    def update_stat(self, has_won: bool) -> None:
         if has_won:
             percent_update = self.__update_coef
         else:
             percent_update = -self.__update_coef
 
-
         for play in self.__currentPlay:
             for possibility in self.__brain[play[0]]:
                 if possibility[0] == play:
-                    # update the probability of the play played
+                    # update the probability of the play played during the game
                     possibility = possibility[0], possibility[1] + percent_update
                 else:
                     # update the probability of the other plays
                     possibility = possibility[0], possibility[1] - percent_update / 2
 
+        # reset current plays to the next game
         self.__currentPlay.clear()
 
     # ---------------------------------------------------------------------------
@@ -139,8 +144,8 @@ class NaiveIA:
     def __create_default_brain(self) -> dict:
         brain = dict()
 
-        for i in range(20):
-            brain[i + 1] = [
+        for i in range(1, 21):
+            brain[i] = [
                 (1, 0.33),
                 (2, 0.33),
                 (3, 0.33)
