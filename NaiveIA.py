@@ -97,6 +97,10 @@ class NaiveIA:
     # ---------------------------------------------------------------------------
 
     def play(self, nb_stick_remaining: int) -> int:
+        # only one play possible
+        if nb_stick_remaining == 1:
+            return 1
+
         random_play = None
 
         # choosing current play depending on play probabilities
@@ -109,7 +113,8 @@ class NaiveIA:
             elif (random_num < self.__brain[nb_stick_remaining - 1][0] + self.__brain[nb_stick_remaining - 1][1]):
                 random_play = 2
 
-            elif (random_num < self.__brain[nb_stick_remaining - 1][0] + self.__brain[nb_stick_remaining - 1][1] + self.__brain[nb_stick_remaining - 1][2]):
+            elif (len(self.__brain[nb_stick_remaining - 1]) >= 3 and
+                  random_num < self.__brain[nb_stick_remaining - 1][0] + self.__brain[nb_stick_remaining - 1][1] + self.__brain[nb_stick_remaining - 1][2]):
                 random_play = 3
 
         # add the current play in the list to update the probailities at the end of the game
@@ -144,7 +149,13 @@ class NaiveIA:
     def __create_default_brain(self) -> dict:
         brain = dict()
 
-        for i in range(1, 21):
+        # only 2 plays possible when that remaining only 2 sticks
+        brain[2] = [
+            (1, 0.5),
+            (2, 0.5)
+        ]
+
+        for i in range(3, 21):
             brain[i] = [
                 (1, 0.33),
                 (2, 0.33),
