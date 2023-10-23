@@ -42,7 +42,7 @@ class NaiveIA:
     # CONSTRUCTOR
     # ---------------------------------------------------------------------------
 
-    def __init__(self, imported_json_brain: dict = None, update_coef: float = 2) -> None:
+    def __init__(self, imported_json_brain: dict = None, update_coef: float = 0.02) -> None:
         if imported_json_brain is None:
             # initialize IA brain with default value
             self.__brain = self.__create_default_brain()
@@ -125,19 +125,22 @@ class NaiveIA:
     # ---------------------------------------------------------------------------
 
     def update_stat(self, has_won: bool) -> None:
+        self.__nbGames += 1
+
         if has_won:
             percent_update = self.__update_coef
+            self.__nbWin += 1
         else:
             percent_update = -self.__update_coef
 
         for play in self.__currentPlay:
             for possibility in self.__brain[play[0]]:
-                if possibility[0] == play:
+                if possibility[0] == play[0]:
                     # update the probability of the play played during the game
-                    possibility = possibility[0], possibility[1] + percent_update
+                    self.__brain[play[0]][possibility[0] - 1] = possibility[0], possibility[1] + percent_update
                 else:
                     # update the probability of the other plays
-                    possibility = possibility[0], possibility[1] - percent_update / 2
+                    self.__brain[play[0]][possibility[0] - 1] = possibility[0], possibility[1] - percent_update / 2
 
         # reset current plays to the next game
         self.__currentPlay.clear()

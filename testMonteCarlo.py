@@ -14,7 +14,7 @@ q = [[-0.10000000000000002, -0.05000000000000001, -0.05000000000000001], [0.1500
 def choix_action(l):
     if l[0] == l[1] == l[2]:
         print("choisi aléatoirement")
-        return randint(1,3);
+        return randint(1,3)
     elif max(l) == l[0]:
         print("choisi 1")
         return 1
