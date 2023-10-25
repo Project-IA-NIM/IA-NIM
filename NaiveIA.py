@@ -104,20 +104,20 @@ class NaiveIA:
         random_play = None
 
         # choosing current play depending on play probabilities
-        while(random_play is None):
+        while random_play is None:
             random_num = random.random()
 
-            if (random_num < self.__brain[nb_stick_remaining - 1][0]):
+            if random_num < self.__brain[nb_stick_remaining - 1][0]:
                 random_play = 1
 
-            elif (random_num < self.__brain[nb_stick_remaining - 1][0] + self.__brain[nb_stick_remaining - 1][1]):
+            elif random_num < self.__brain[nb_stick_remaining - 1][0] + self.__brain[nb_stick_remaining - 1][1]:
                 random_play = 2
 
             elif (len(self.__brain[nb_stick_remaining - 1]) >= 3 and
                   random_num < self.__brain[nb_stick_remaining - 1][0] + self.__brain[nb_stick_remaining - 1][1] + self.__brain[nb_stick_remaining - 1][2]):
                 random_play = 3
 
-        # add the current play in the list to update the probailities at the end of the game
+        # add the current play in the list to update the probabilities at the end of the game
         self.__currentPlay.append((nb_stick_remaining, random_play))
 
         return random_play
@@ -140,7 +140,7 @@ class NaiveIA:
                     self.__brain[play[0]][possibility[0] - 1] = possibility[0], possibility[1] + percent_update
                 else:
                     # update the probability of the other plays
-                    self.__brain[play[0]][possibility[0] - 1] = possibility[0], possibility[1] - percent_update / 2
+                    self.__brain[play[0]][possibility[0] - 1] = possibility[0], possibility[1] - percent_update / (len(possibility) - 1)
 
         # reset current plays to the next game
         self.__currentPlay.clear()
