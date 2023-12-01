@@ -108,21 +108,23 @@ class NaiveIA:
         # choosing current play depending on play probabilities
         while ia_play is None:
             random_number = random.random()
-            
+
             # check probability to play only stick
             if random_number < self.__brain[nb_stick_remaining][0][1]:
                 ia_play = 1
+                break
             else:
                 random_number -= self.__brain[nb_stick_remaining][0][1]
 
             # check probability to play two sticks
             if random_number < self.__brain[nb_stick_remaining][1][1]:
                 ia_play = 2
+                break
             else:
                 random_number -= self.__brain[nb_stick_remaining][1][1]
 
             # check probability to play three sticks
-            if len(self.__brain[nb_stick_remaining]) > 2 and random_number < self.__brain[nb_stick_remaining][2][1]:
+            if len(self.__brain[nb_stick_remaining]) >= 3 and random_number < self.__brain[nb_stick_remaining][2][1]:
                 ia_play = 3
 
         # add the current play in the list to update the probabilities at the end of the game

@@ -55,8 +55,13 @@ class IAMonteCarlo:
             self.__epsilon = 0.8
 
             self.__q = self.__create_default_list()
-            self.__pi = self.__create_default_list()
-        
+
+            self.__pi = list()
+            self.__pi.append([.5, .5])
+
+            for i in range(self.__nb_sticks - 2):
+                self.__pi.append([.33, .33, .33])
+
         else:
             self.__nb_games = imported_json_brain['nb_games_played']
             self.__nb_win = imported_json_brain['nb_games_won']
@@ -72,8 +77,8 @@ class IAMonteCarlo:
     def export_brain(self, export_file_path: str = None) -> None:
         # default file path
         if export_file_path is None:
-            export_file_path = os.path.join("output", "IAMonteCarlo-Brain-Report.json")
-        
+            export_file_path = os.path.join("../Nim-Game/IA/output", "IAMonteCarlo-Brain-Report.json")
+
         if self.__nb_games == 0:
             # no game played, so we set to 0 (we can't divide by 0 !)
             win_rate = 0
@@ -96,7 +101,7 @@ class IAMonteCarlo:
         }
 
         with open(export_file_path, "w") as output_file:
-            json_brain = json.dumps(export_brain)
+            json_brain = json.dumps(export_brain, indent=3)
             output_file.write(json_brain)
 
     # ---------------------------------------------------------------------------
@@ -105,6 +110,7 @@ class IAMonteCarlo:
         if nb_stick_remaining == 1:
             return 1
 
+        nb_stick_remaining -= 2
         move_play = None
 
         while move_play is None:
@@ -113,12 +119,14 @@ class IAMonteCarlo:
             # check probability to play only stick
             if random_number <= self.__pi[nb_stick_remaining][0]:
                 move_play = 1
+                break
             else:
                 random_number -= self.__pi[nb_stick_remaining][0]
 
             # check probability to play two sticks
             if random_number <= self.__pi[nb_stick_remaining][1]:
                 move_play = 2
+                break
             else:
                 random_number -= self.__pi[nb_stick_remaining][1]
 
@@ -144,12 +152,12 @@ class IAMonteCarlo:
                     if self.__moves_play[i][j] == 1:
                         self.__moves_play[i][j] = -1
 
-        for i in range(self.__nb_sticks):
-            for j in range(len(self.__q)):
+        for i in range(len(self.__q)):
+            for j in range(len(self.__q[i])):
                 self.__q[i][j] += 1 / self.__nb_games * (self.__moves_play[i][j] - self.__q[i][j])
 
-        for i in range(self.__nb_sticks):
-            for j in range(len(self.__q)):
+        for i in range(len(self.__q)):
+            for j in range(len(self.__q[i])):
                 if self.__moves_play[i][j] != 0:
                     self.__pi[i][j] = self.__epsilon / 3
 
@@ -172,6 +180,7 @@ class IAMonteCarlo:
         brain.append([0, 0])
 
         # create empty brain
-        brain.append([0, 0, 0] * self.__nb_sticks - 2)
+        for i in range(self.__nb_sticks - 2):
+            brain.append([0, 0, 0])
 
         return brain
