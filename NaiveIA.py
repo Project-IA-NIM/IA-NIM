@@ -2,7 +2,7 @@
 """
 :filename: NaiveIA.py
 :author:   Florian Lopitaux
-:version:  0.1
+:version:  1.0
 :summary:  Implementation of an IA for the Nim game.
            Naive approach of the algorithm used by this IA.
 
@@ -34,6 +34,7 @@ import os
 import json
 import random
 
+
 # ---------------------------------------------------------------------------
 
 class NaiveIA:
@@ -61,7 +62,6 @@ class NaiveIA:
         # coefficient apply when the IA updates the probabilities at the end of the game
         self.__update_coef = update_coef
 
-
     # ---------------------------------------------------------------------------
     # PUBLIC METHODS
     # ---------------------------------------------------------------------------
@@ -76,8 +76,8 @@ class NaiveIA:
             win_rate = 0
             lose_rate = 0
         else:
-            win_rate = round(self.__nbWin / self.__nbGames, 2)
-            lose_rate = round((self.__nbGames - self.__nbWin) / self.__nbGames, 2)
+            win_rate = round((self.__nbWin / self.__nbGames) * 100, 2)
+            lose_rate = round(((self.__nbGames - self.__nbWin) / self.__nbGames) * 100, 2)
 
         # export brain in json format in an output file
         export_brain = {
@@ -101,30 +101,39 @@ class NaiveIA:
         if nb_stick_remaining == 1:
             return 1
 
-        random_play = None
+        # convert in string to corresponds with the brain format (dictionnary keys in string)
+        nb_stick_remaining = str(nb_stick_remaining)
+        ia_play = None
 
         # choosing current play depending on play probabilities
-        while random_play is None:
-            random_num = random.random()
+        while ia_play is None:
+            random_number = random.random()
+            
+            # check probability to play only stick
+            if random_number < self.__brain[nb_stick_remaining][0][1]:
+                ia_play = 1
+            else:
+                random_number -= self.__brain[nb_stick_remaining][0][1]
 
-            if random_num < self.__brain[nb_stick_remaining - 1][0]:
-                random_play = 1
+            # check probability to play two sticks
+            if random_number < self.__brain[nb_stick_remaining][1][1]:
+                ia_play = 2
+            else:
+                random_number -= self.__brain[nb_stick_remaining][0][1]
 
-            elif random_num < self.__brain[nb_stick_remaining - 1][0] + self.__brain[nb_stick_remaining - 1][1]:
-                random_play = 2
-
-            elif (len(self.__brain[nb_stick_remaining - 1]) >= 3 and
-                  random_num < self.__brain[nb_stick_remaining - 1][0] + self.__brain[nb_stick_remaining - 1][1] + self.__brain[nb_stick_remaining - 1][2]):
-                random_play = 3
+            # check probability to play three sticks
+            if len(self.__brain[nb_stick_remaining]) >= 3 and random_number < self.__brain[nb_stick_remaining][2][1]:
+                ia_play = 3
 
         # add the current play in the list to update the probabilities at the end of the game
-        self.__currentPlay.append((nb_stick_remaining, random_play))
+        self.__currentPlay.append((nb_stick_remaining, ia_play))
 
-        return random_play
+        return ia_play
 
     # ---------------------------------------------------------------------------
 
     def update_stat(self, has_won: bool) -> None:
+        # update ia stats
         self.__nbGames += 1
 
         if has_won:
@@ -133,14 +142,22 @@ class NaiveIA:
         else:
             percent_update = -self.__update_coef
 
+        # update plays probabilities
         for play in self.__currentPlay:
             for possibility in self.__brain[play[0]]:
-                if possibility[0] == play[0]:
+                if possibility[0] == play[1]:
                     # update the probability of the play played during the game
-                    self.__brain[play[0]][possibility[0] - 1] = possibility[0], possibility[1] + percent_update
+                    self.__brain[play[0]][possibility[0] - 1][1] += percent_update
                 else:
                     # update the probability of the other plays
-                    self.__brain[play[0]][possibility[0] - 1] = possibility[0], possibility[1] - percent_update / (len(possibility) - 1)
+                    self.__brain[play[0]][possibility[0] - 1][1] -= percent_update / (len(self.__brain[play[0]]) - 1)
+
+                # limit maximum and minimum probabilities
+                if self.__brain[play[0]][possibility[0] - 1][1] > 0.98:
+                    self.__brain[play[0]][possibility[0] - 1][1] = 0.98
+
+                elif self.__brain[play[0]][possibility[0] - 1][1] < 0.01:
+                    self.__brain[play[0]][possibility[0] - 1][1] = 0.01
 
         # reset current plays to the next game
         self.__currentPlay.clear()
@@ -153,16 +170,16 @@ class NaiveIA:
         brain = dict()
 
         # only 2 plays possible when that remaining only 2 sticks
-        brain[2] = [
-            (1, 0.5),
-            (2, 0.5)
+        brain["2"] = [
+            [1, 0.5],
+            [2, 0.5]
         ]
 
         for i in range(3, 21):
-            brain[i] = [
-                (1, 0.33),
-                (2, 0.33),
-                (3, 0.33)
+            brain[str(i)] = [
+                [1, 0.33],
+                [2, 0.33],
+                [3, 0.33]
             ]
-        
+
         return brain
